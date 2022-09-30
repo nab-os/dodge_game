@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PresentMode};
 use rand::Rng;
 
 #[derive(Component)]
@@ -36,6 +36,13 @@ struct Game {
 
 fn main() {
     App::new()
+        .insert_resource(WindowDescriptor {
+            title: "Very original dodge game".to_string(),
+            width: 1050.,
+            height: 1050.,
+            present_mode: PresentMode::AutoVsync,
+            ..default()
+        })
         .init_resource::<Game>()
         .add_plugins(DefaultPlugins)
         .add_state(AppState::Start)
