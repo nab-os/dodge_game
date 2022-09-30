@@ -275,16 +275,31 @@ fn player_movements(
     const PLAYER_SPEED: f32 = 250.;
     let mut player_transform = transforms.get_mut(game.player.unwrap()).unwrap();
     let mut direction = Vec3::new(0., 0., 0.);
-    if keyboard_input.pressed(KeyCode::E) {
+    // Arrows or Qwerty or Azert or (Bepo + Dactyl Manuform)
+    if keyboard_input.pressed(KeyCode::Right)
+        || keyboard_input.pressed(KeyCode::D)
+        || keyboard_input.pressed(KeyCode::E)
+    {
         direction.x += 1.;
     };
-    if keyboard_input.pressed(KeyCode::U) {
+    if keyboard_input.pressed(KeyCode::Left)
+        || keyboard_input.pressed(KeyCode::A)
+        || keyboard_input.pressed(KeyCode::Q)
+        || keyboard_input.pressed(KeyCode::U)
+    {
         direction.x -= 1.;
     };
-    if keyboard_input.pressed(KeyCode::P) {
+    if keyboard_input.pressed(KeyCode::Up)
+        || keyboard_input.pressed(KeyCode::W)
+        || keyboard_input.pressed(KeyCode::Z)
+        || keyboard_input.pressed(KeyCode::P)
+    {
         direction.y += 1.;
     };
-    if keyboard_input.pressed(KeyCode::I) {
+    if keyboard_input.pressed(KeyCode::Down)
+        || keyboard_input.pressed(KeyCode::S)
+        || keyboard_input.pressed(KeyCode::I)
+    {
         direction.y -= 1.;
     };
     if direction.length() > 0. {
