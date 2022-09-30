@@ -248,7 +248,7 @@ fn bullet_spawn(
             })
             .insert(Bullet)
             .insert(Velocity(
-                Vec2::new(diff.x, diff.y).normalize() * Vec2::new(1000., 1000.),
+                Vec2::new(diff.x, diff.y).normalize() * Vec2::new(600., 600.),
             ))
             .insert(Collider);
     }
