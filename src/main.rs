@@ -18,6 +18,9 @@ struct Player(SpriteBundle);
 #[derive(Component)]
 struct Velocity(Vec2);
 
+#[derive(Component)]
+struct StartText;
+
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
 enum AppState {
     Start,
@@ -37,6 +40,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_state(AppState::Start)
         .add_startup_system(setup)
+        .add_system_set(SystemSet::on_enter(AppState::Start).with_system(setup_start))
         .add_system_set(SystemSet::on_update(AppState::Start).with_system(start))
         .add_system_set(SystemSet::on_enter(AppState::Playing).with_system(clean))
         .add_system_set(
@@ -103,6 +107,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
+                position_type: PositionType::Absolute,
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
@@ -141,6 +146,39 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
         });
 }
 
+fn setup_start(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                align_content: AlignContent::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+            color: UiColor(Color::NONE),
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(
+                    TextBundle::from_section(
+                        // Accepts a `String` or any type that converts into a `String`, such as `&str`
+                        "Press Space to Start",
+                        TextStyle {
+                            font: asset_server.load("DejaVuSans.ttf"),
+                            font_size: 50.0,
+                            color: Color::WHITE,
+                        },
+                    )
+                    .with_text_alignment(TextAlignment::TOP_CENTER), // Set the alignment of the Text
+                )
+                .insert(StartText);
+        });
+}
+
 fn start(mut state: ResMut<State<AppState>>, keyboard_input: Res<Input<KeyCode>>) {
     if keyboard_input.pressed(KeyCode::Space) {
         state.set(AppState::Playing).unwrap();
@@ -150,9 +188,13 @@ fn start(mut state: ResMut<State<AppState>>, keyboard_input: Res<Input<KeyCode>>
 fn clean(
     mut commands: Commands,
     mut game: ResMut<Game>,
-    components: Query<(Entity, &Bullet), With<Bullet>>,
+    bullets: Query<Entity, With<Bullet>>,
+    start_texts: Query<Entity, With<StartText>>,
 ) {
-    for (entity, _bullet) in &components {
+    for entity in &bullets {
+        commands.entity(entity).despawn_recursive();
+    }
+    for entity in &start_texts {
         commands.entity(entity).despawn_recursive();
     }
     game.score = 0;
