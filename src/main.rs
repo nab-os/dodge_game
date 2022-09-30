@@ -76,18 +76,45 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
 
     game.timer = Timer::from_seconds(0.2, true);
 
-    commands.spawn_bundle(
-        TextBundle::from_section(
-            // Accepts a `String` or any type that converts into a `String`, such as `&str`
-            "Score: 0",
-            TextStyle {
-                font: asset_server.load("DejaVuSans.ttf"),
-                font_size: 50.0,
-                color: Color::WHITE,
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                align_content: AlignContent::FlexEnd,
+                justify_content: JustifyContent::FlexEnd,
+                ..default()
             },
-        )
-        .with_text_alignment(TextAlignment::TOP_CENTER), // Set the alignment of the Text
-    );
+            color: UiColor(Color::NONE),
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        border: UiRect::all(Val::Px(2.0)),
+                        padding: UiRect::all(Val::Px(10.)),
+                        ..default()
+                    },
+                    color: UiColor(Color::GRAY),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn_bundle(
+                        TextBundle::from_section(
+                            // Accepts a `String` or any type that converts into a `String`, such as `&str`
+                            "Score: 0",
+                            TextStyle {
+                                font: asset_server.load("DejaVuSans.ttf"),
+                                font_size: 50.0,
+                                color: Color::BLACK,
+                            },
+                        )
+                        .with_text_alignment(TextAlignment::TOP_CENTER), // Set the alignment of the Text
+                    );
+                });
+        });
 }
 
 fn start(mut state: ResMut<State<AppState>>, keyboard_input: Res<Input<KeyCode>>) {
@@ -114,7 +141,7 @@ fn tick(time: Res<Time>, mut game: ResMut<Game>) {
 
 fn score_update(game: Res<Game>, mut query: Query<&mut Text>) {
     for mut text in &mut query {
-        text.sections[0].value = game.score.to_string();
+        text.sections[0].value = format!("Score: {}", game.score.to_string());
     }
 }
 
@@ -181,18 +208,22 @@ fn player_movements(
 ) {
     const PLAYER_SPEED: f32 = 200.;
     let mut player_transform = transforms.get_mut(game.player.unwrap()).unwrap();
+    let mut direction = Vec3::new(0., 0., 0.);
     if keyboard_input.pressed(KeyCode::E) {
-        player_transform.translation.x += PLAYER_SPEED * time.delta_seconds();
+        direction.x += 1.;
     };
     if keyboard_input.pressed(KeyCode::U) {
-        player_transform.translation.x -= PLAYER_SPEED * time.delta_seconds();
+        direction.x -= 1.;
     };
     if keyboard_input.pressed(KeyCode::P) {
-        player_transform.translation.y += PLAYER_SPEED * time.delta_seconds();
+        direction.y += 1.;
     };
     if keyboard_input.pressed(KeyCode::I) {
-        player_transform.translation.y -= PLAYER_SPEED * time.delta_seconds();
+        direction.y -= 1.;
     };
+    if direction.length() > 0. {
+        player_transform.translation += direction.normalize() * PLAYER_SPEED * time.delta_seconds();
+    }
 }
 
 fn check_for_collisions(
