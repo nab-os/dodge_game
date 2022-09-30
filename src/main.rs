@@ -227,22 +227,26 @@ fn player_movements(
 }
 
 fn check_for_collisions(
+    time: Res<Time>,
     mut state: ResMut<State<AppState>>,
     game: ResMut<Game>,
     assets: Res<Assets<Image>>,
     transforms: Query<&Transform>,
-    collider_query: Query<(Entity, &Handle<Image>, &Transform, &Collider), With<Bullet>>,
+    collider_query: Query<(Entity, &Handle<Image>, &Transform, &Velocity, &Collider), With<Bullet>>,
 ) {
     let player_transform = transforms.get(game.player.unwrap()).unwrap();
 
-    for (_collider_entity, texture_handle, transform, _collider) in &collider_query {
+    for (_collider_entity, texture_handle, transform, velocity, _collider) in &collider_query {
         if let Some(texture) = assets.get(texture_handle) {
             let size = texture.size() * transform.scale.truncate();
-            if collide_with_rotation(
+            if collide_with_rotation_multistep(
+                time.clone(),
                 player_transform.translation.truncate(),
                 transform.translation.truncate(),
                 size,
                 transform.rotation,
+                velocity.0,
+                5,
             ) {
                 println!("Score was: {}", game.score);
                 state.overwrite_set(AppState::Start).unwrap();
@@ -252,6 +256,29 @@ fn check_for_collisions(
 }
 
 // ============== COLLISION DETECTION ==============
+
+fn collide_with_rotation_multistep(
+    time: Time,
+    point: Vec2,
+    rectangle_position: Vec2,
+    rectangle_size: Vec2,
+    rectangle_rotation: Quat,
+    rectangle_velocity: Vec2,
+    steps: u16,
+) -> bool {
+    for i in 0..steps {
+        if collide_with_rotation(
+            point,
+            rectangle_position
+                - (i as f32 / steps as f32) * rectangle_velocity * time.clone().delta_seconds(),
+            rectangle_size,
+            rectangle_rotation,
+        ) {
+            return true;
+        }
+    }
+    false
+}
 
 fn collide_with_rotation(
     point: Vec2,
