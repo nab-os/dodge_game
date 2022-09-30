@@ -55,12 +55,36 @@ fn main() {
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
+    // Backdrop
+    commands.spawn_bundle(SpriteBundle {
+        transform: Transform {
+            scale: Vec3::new(1015., 1015., 0.1),
+            ..default()
+        },
+        sprite: Sprite {
+            color: Color::WHITE,
+            ..default()
+        },
+        ..default()
+    });
+    commands.spawn_bundle(SpriteBundle {
+        transform: Transform {
+            scale: Vec3::new(1010., 1010., 0.2),
+            ..default()
+        },
+        sprite: Sprite {
+            color: Color::BLACK,
+            ..default()
+        },
+        ..default()
+    });
+
     game.player = Some(
         commands
             .spawn()
             .insert_bundle(SpriteBundle {
                 transform: Transform {
-                    translation: Vec3::new(0., 0., 0.),
+                    translation: Vec3::new(0., 0., 0.3),
                     scale: Vec3::new(10., 10., 10.),
                     ..default()
                 },
@@ -206,7 +230,7 @@ fn player_movements(
     game: ResMut<Game>,
     mut transforms: Query<&mut Transform>,
 ) {
-    const PLAYER_SPEED: f32 = 200.;
+    const PLAYER_SPEED: f32 = 250.;
     let mut player_transform = transforms.get_mut(game.player.unwrap()).unwrap();
     let mut direction = Vec3::new(0., 0., 0.);
     if keyboard_input.pressed(KeyCode::E) {
@@ -224,6 +248,9 @@ fn player_movements(
     if direction.length() > 0. {
         player_transform.translation += direction.normalize() * PLAYER_SPEED * time.delta_seconds();
     }
+
+    player_transform.translation.x = player_transform.translation.x.clamp(-500., 500.);
+    player_transform.translation.y = player_transform.translation.y.clamp(-500., 500.);
 }
 
 fn check_for_collisions(
